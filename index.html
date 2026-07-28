@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>房產資訊網站</title>
+  <script>
+    // 避免主題閃爍：在繪製前套用已儲存的主題
+    (function () {
+      try {
+        var t = localStorage.getItem('ui_theme_v1');
+        if (t !== 'dark' && t !== 'light') {
+          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-soft: #dbeafe;
+      --primary-soft-text: #1e40af;
+      --border: #e5e7eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --danger: #ef4444;
+      --danger-soft: #fef2f2;
+      --danger-border: #fca5a5;
+      --radius: 10px;
+      --shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --header-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      --input-bg: #ffffff;
+      --btn-secondary-bg: #e2e8f0;
+      --btn-secondary-hover: #cbd5e1;
+      --surface-2: #f1f5f9;
+      --surface-3: #f8fafc;
+      --selected-bg: #f0f7ff;
+      --selected-hover: #e8f1ff;
+      --focus-ring: rgba(37, 99, 235, 0.15);
+      --modal-overlay: rgba(15, 23, 42, 0.55);
+      --star: #cbd5e1;
+      --star-active: #f59e0b;
+      --star-active-hover: #d97706;
+      --star-bg: #fffbeb;
+      --star-bg-hover: #fef3c7;
+      --star-border: #fbbf24;
+      --star-border-hover: #fcd34d;
+      --type-normal-bg: #dcfce7;
+      --type-normal-text: #166534;
+      --type-ground-bg: #fef3c7;
+      --type-ground-text: #92400e;
+      --scheme1: #1d4ed8;
+      --scheme1-border: #1e40af;
+      --scheme1-sub-bg: #dbeafe;
+      --scheme1-sub-text: #1e3a8a;
+      --scheme1-sub-border: #93c5fd;
+      --scheme1-cell: #f8fbff;
+      --scheme1-cell-hover: #eff6ff;
+      --scheme2: #0f766e;
+      --scheme2-border: #0f766e;
+      --scheme2-sub-bg: #ccfbf1;
+      --scheme2-sub-text: #115e59;
+      --scheme2-sub-border: #5eead4;
+      --scheme2-cell: #f6fffd;
+      --scheme2-cell-hover: #ecfdf5;
+      --th-base-bg: #f1f5f9;
+      --th-base-text: #334155;
+      --th-base-border: #cbd5e1;
+      --favorite-border: #fbbf24;
+      --favorite-border-active: #f59e0b;
+      --expanded-border: #93c5fd;
+      --delete-text: #94a3b8;
+      --switch-track: #cbd5e1;
+      --switch-track-active: #2563eb;
+      --switch-knob: #ffffff;
+      --switch-icon: #64748b;
+      color-scheme: light;
+    }
+
+    [data-theme="dark"] {
+      --primary: #60a5fa;
+      --primary-hover: #3b82f6;
+      --primary-soft: #1e3a5f;
+      --primary-soft-text: #93c5fd;
+      --border: #334155;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --danger: #f87171;
+      --danger-soft: #450a0a;
+      --danger-border: #7f1d1d;
+      --shadow: 0 4px 16px rgba(0,0,0,0.4);
+      --header-shadow: 0 1px 3px rgba(0,0,0,0.35);
+      --input-bg: #0f172a;
+      --btn-secondary-bg: #334155;
+      --btn-secondary-hover: #475569;
+      --surface-2: #1e293b;
+      --surface-3: #0f172a;
+      --selected-bg: #1e3a5f;
+      --selected-hover: #1e40af;
+      --focus-ring: rgba(96, 165, 250, 0.28);
+      --modal-overlay: rgba(0, 0, 0, 0.72);
+      --star: #64748b;
+      --star-active: #fbbf24;
+      --star-active-hover: #fcd34d;
+      --star-bg: #422006;
+      --star-bg-hover: #78350f;
+      --star-border: #d97706;
+      --star-border-hover: #f59e0b;
+      --type-normal-bg: #14532d;
+      --type-normal-text: #86efac;
+      --type-ground-bg: #78350f;
+      --type-ground-text: #fcd34d;
+      --scheme1: #2563eb;
+      --scheme1-border: #1d4ed8;
+      --scheme1-sub-bg: #1e3a8a;
+      --scheme1-sub-text: #bfdbfe;
+      --scheme1-sub-border: #3b82f6;
+      --scheme1-cell: #172554;
+      --scheme1-cell-hover: #1e3a8a;
+      --scheme2: #0d9488;
+      --scheme2-border: #0f766e;
+      --scheme2-sub-bg: #134e4a;
+      --scheme2-sub-text: #99f6e4;
+      --scheme2-sub-border: #14b8a6;
+      --scheme2-cell: #042f2e;
+      --scheme2-cell-hover: #115e59;
+      --th-base-bg: #334155;
+      --th-base-text: #e2e8f0;
+      --th-base-border: #475569;
+      --favorite-border: #d97706;
+      --favorite-border-active: #f59e0b;
+      --expanded-border: #3b82f6;
+      --delete-text: #94a3b8;
+      --switch-track: #475569;
+      --switch-track-active: #3b82f6;
+      --switch-knob: #f8fafc;
+      --switch-icon: #cbd5e1;
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", "Microsoft JhengHei", "PingFang TC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    /* Header */
+    .header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--header-shadow);
+    }
+
+    .header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* Theme switch */
+    .theme-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+    }
+
+    .theme-switch-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .theme-switch-label .icon-sun,
+    .theme-switch-label .icon-moon {
+      display: none;
+    }
+
+    [data-theme="light"] .theme-switch-label .icon-sun {
+      display: inline;
+    }
+
+    [data-theme="dark"] .theme-switch-label .icon-moon {
+      display: inline;
+    }
+
+    .theme-toggle {
+      position: relative;
+      width: 52px;
+      height: 28px;
+      border: none;
+      border-radius: 999px;
+      background: var(--switch-track);
+      cursor: pointer;
+      padding: 0;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .theme-toggle:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    [data-theme="dark"] .theme-toggle {
+      background: var(--switch-track-active);
+    }
+
+    .theme-toggle-knob {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--switch-knob);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+      transition: transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      line-height: 1;
+    }
+
+    [data-theme="dark"] .theme-toggle-knob {
+      transform: translateX(24px);
+    }
+
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: var(--btn-secondary-bg);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: var(--btn-secondary-hover);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    /* Main layout */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 20px 40px;
+    }
+
+    /* Filter section */
+    .filter-section {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .filter-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      align-items: end;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    select, input[type="number"], input[type="text"] {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: var(--input-bg);
+      color: var(--text);
+      transition: border-color 0.2s, background-color 0.2s;
+      width: 100%;
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    option {
+      background: var(--card-bg);
+      color: var(--text);
+    }
+
+    /* Property list */
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .list-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .list-header h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+
+    .count-badge {
+      background: var(--primary-soft);
+      color: var(--primary-soft-text);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .property-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      overflow: visible;
+    }
+
+    .property-block {
+      position: relative;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: box-shadow 0.15s, border-color 0.15s;
+    }
+
+    .property-block.expanded {
+      border-color: var(--expanded-border);
+      box-shadow: 0 0 0 2px var(--focus-ring), var(--shadow);
+    }
+
+    .property-block.is-favorite {
+      border-color: var(--favorite-border);
+    }
+
+    .property-block.is-favorite.expanded {
+      border-color: var(--favorite-border-active);
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15), var(--shadow);
+    }
+
+    .btn-favorite {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      z-index: 2;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--card-bg);
+      color: var(--star);
+      font-size: 1.15rem;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--header-shadow);
+      transition: all 0.15s;
+    }
+
+    .btn-favorite:hover {
+      color: var(--star-active);
+      border-color: var(--star-border-hover);
+      background: var(--star-bg);
+      transform: scale(1.05);
+    }
+
+    .btn-favorite.active {
+      color: var(--star-active);
+      border-color: var(--star-border);
+      background: var(--star-bg);
+    }
+
+    .btn-favorite.active:hover {
+      color: var(--star-active-hover);
+      background: var(--star-bg-hover);
+    }
+
+    .property-list-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 18px 14px 48px;
+      background: var(--card-bg);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+    }
+
+    .property-block.expanded .property-list-item {
+      border-bottom: 1px solid var(--border);
+      background: var(--selected-bg);
+    }
+
+    .property-list-item:hover {
+      background: var(--surface-3);
+    }
+
+    .property-block.expanded .property-list-item:hover {
+      background: var(--selected-hover);
+    }
+
+    .property-calc {
+      display: none;
+      background: var(--card-bg);
+    }
+
+    .property-block.expanded .property-calc {
+      display: block;
+    }
+
+    .property-calc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: var(--surface-3);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .property-calc-header .calc-meta {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .property-calc .calc-body {
+      max-height: 320px;
+    }
+
+    .property-calc .calc-note {
+      padding: 8px 16px;
+      font-size: 0.75rem;
+    }
+
+    .list-item-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .list-item-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .list-item-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .list-item-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .list-item-meta span strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .list-item-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .loan-params {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      flex-shrink: 0;
+      padding: 6px 10px;
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .loan-param {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 88px;
+    }
+
+    .loan-param label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .loan-param input {
+      width: 88px;
+      padding: 6px 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: text;
+    }
+
+    @media (max-width: 720px) {
+      .loan-params {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .list-item-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+
+    .btn-sm {
+      padding: 7px 14px;
+      font-size: 0.85rem;
+    }
+
+    .btn-edit {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-edit:hover {
+      background: var(--primary-hover);
+    }
+
+    .type-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .type-一般 {
+      background: var(--type-normal-bg);
+      color: var(--type-normal-text);
+    }
+
+    .type-地上權 {
+      background: var(--type-ground-bg);
+      color: var(--type-ground-text);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px dashed var(--border);
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 12px;
+      opacity: 0.4;
+    }
+
+    @media (max-width: 640px) {
+      .property-list-item {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .list-item-actions {
+        justify-content: flex-end;
+      }
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--modal-overlay);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+      transform: translateY(20px);
+      transition: transform 0.25s;
+    }
+
+    .modal-overlay.active .modal {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--muted);
+      line-height: 1;
+      padding: 4px;
+    }
+
+    .modal-close:hover {
+      color: var(--text);
+    }
+
+    .modal-body {
+      padding: 20px 24px 24px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .price-range-inputs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .price-range-inputs input {
+      flex: 1;
+    }
+
+    .price-range-inputs span {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-3);
+      border-radius: 0 0 14px 14px;
+    }
+
+    .error-msg {
+      color: var(--danger);
+      font-size: 0.8rem;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .form-group.has-error input,
+    .form-group.has-error select {
+      border-color: var(--danger);
+    }
+
+    .form-group.has-error .error-msg {
+      display: block;
+    }
+
+    /* Delete button */
+    .btn-delete {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--delete-text);
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 7px 12px;
+      border-radius: 8px;
+      transition: all 0.15s;
+      font-weight: 600;
+    }
+
+    .btn-delete:hover {
+      color: var(--danger);
+      border-color: var(--danger-border);
+      background: var(--danger-soft);
+    }
+
+    /* Calculation Panel */
+    .calc-panel {
+      margin-top: 28px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .calc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .calc-header h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .calc-header .selected-info {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .calc-body {
+      padding: 0;
+      max-height: min(52vh, 460px);
+      overflow: auto;
+    }
+
+    .calc-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.9rem;
+    }
+
+    .calc-table th,
+    .calc-table td {
+      padding: 10px 14px;
+      text-align: right;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+
+    .calc-table th:last-child,
+    .calc-table td:last-child {
+      border-right: none;
+    }
+
+    .calc-table th:first-child,
+    .calc-table td:first-child {
+      text-align: left;
+    }
+
+    /* 鎖定表頭：基本欄位（跨兩列） */
+    .calc-table thead th.th-base {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--th-base-bg);
+      color: var(--th-base-text);
+      font-weight: 700;
+      text-align: center;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--th-base-border);
+      box-shadow: 0 1px 0 var(--th-base-border);
+    }
+
+    /* 方案 title 列（鎖定） */
+    .calc-table thead th.scheme-title {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
+      height: 40px;
+      padding: 0 14px;
+      border-bottom: 1px solid transparent;
+    }
+
+    .calc-table thead th.scheme1-title {
+      background: var(--scheme1);
+      color: #ffffff;
+      border-right-color: var(--scheme1-border);
+    }
+
+    .calc-table thead th.scheme2-title {
+      background: var(--scheme2);
+      color: #ffffff;
+      border-right-color: var(--scheme2-border);
+    }
+
+    /* 方案子欄位列（鎖定在 title 下方） */
+    .calc-table thead th.scheme-sub {
+      position: sticky;
+      top: 40px;
+      z-index: 3;
+      font-weight: 600;
+      text-align: center;
+      font-size: 0.82rem;
+      height: 36px;
+      padding: 0 12px;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+    }
+
+    .calc-table thead th.scheme1-sub {
+      background: var(--scheme1-sub-bg);
+      color: var(--scheme1-sub-text);
+      border-bottom-color: var(--scheme1-sub-border);
+    }
+
+    .calc-table thead th.scheme2-sub {
+      background: var(--scheme2-sub-bg);
+      color: var(--scheme2-sub-text);
+      border-bottom-color: var(--scheme2-sub-border);
+    }
+
+    .calc-table td {
+      background: var(--card-bg);
+    }
+
+    .calc-table td:first-child {
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .calc-table td.col-scheme1 {
+      background: var(--scheme1-cell);
+    }
+
+    .calc-table td.col-scheme2 {
+      background: var(--scheme2-cell);
+    }
+
+    .calc-table tbody tr:hover td {
+      background: var(--surface-3);
+    }
+
+    .calc-table tbody tr:hover td.col-scheme1 {
+      background: var(--scheme1-cell-hover);
+    }
+
+    .calc-table tbody tr:hover td.col-scheme2 {
+      background: var(--scheme2-cell-hover);
+    }
+
+    .calc-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .calc-empty {
+      padding: 32px 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .calc-note {
+      padding: 10px 20px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      background: var(--surface-3);
+      border-top: 1px solid var(--border);
+    }
+
+    /* Hidden class */
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <h1>🏠 房產資訊網站</h1>
+    <div class="theme-switch">
+      <span class="theme-switch-label" id="themeLabel" aria-hidden="true">
+        <span class="icon-sun">☀️ 淺色</span>
+        <span class="icon-moon">🌙 深色</span>
+      </span>
+      <button
+        type="button"
+        class="theme-toggle"
+        id="themeToggle"
+        role="switch"
+        aria-checked="false"
+        aria-label="切換深色／淺色主題"
+        title="切換深色／淺色主題"
+      >
+        <span class="theme-toggle-knob" id="themeToggleKnob">☀️</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Filter Section -->
+    <section class="filter-section">
+      <div class="filter-title">查詢條件</div>
+      <div class="filter-row">
+        <div class="form-group">
+          <label for="filterType">房屋類型</label>
+          <select id="filterType">
+            <option value="">全部</option>
+            <option value="一般">一般</option>
+            <option value="地上權">地上權</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="filterRooms">房數</label>
+          <select id="filterRooms">
+            <option value="">全部</option>
+            <option value="3房">3房</option>
+            <option value="2房">2房</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="filterParking">車位數</label>
+          <select id="filterParking">
+            <option value="">全部</option>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- List Section -->
+    <div class="list-header">
+      <div class="list-header-left">
+        <h2>房產清單</h2>
+        <span class="count-badge" id="countBadge">0 筆</span>
+      </div>
+      <button class="btn btn-primary" id="btnAdd">＋ 新增房產</button>
+    </div>
+
+    <div class="property-list" id="propertyList">
+      <!-- List items + inline calc will be rendered here -->
+    </div>
+  </div>
+
+  <!-- Add / Edit Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">新增房產資訊</h3>
+        <button class="modal-close" id="btnCloseModal">&times;</button>
+      </div>
+      <form id="addForm">
+        <input type="hidden" id="editId" value="" />
+        <div class="modal-body">
+          <div class="form-grid">
+            <!-- 1. 房屋類型 -->
+            <div class="form-group">
+              <label for="type">房屋類型 <span style="color:var(--danger)">*</span></label>
+              <select id="type" required>
+                <option value="">請選擇</option>
+                <option value="一般">一般</option>
+                <option value="地上權">地上權</option>
+              </select>
+            </div>
+
+            <!-- 2. 房數 -->
+            <div class="form-group">
+              <label for="rooms">房數 <span style="color:var(--danger)">*</span></label>
+              <select id="rooms" required>
+                <option value="">請選擇</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+
+            <!-- 3. 車位數 -->
+            <div class="form-group">
+              <label for="parking">車位數 <span style="color:var(--danger)">*</span></label>
+              <select id="parking" required>
+                <option value="">請選擇</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+              </select>
+            </div>
+
+            <!-- 4. 權狀坪數 -->
+            <div class="form-group">
+              <label for="deedArea">權狀坪數 <span style="color:var(--danger)">*</span></label>
+              <input type="number" id="deedArea" min="0" max="100" step="0.01" required placeholder="0 ~ 100" />
+              <div class="error-msg">請輸入 0 ~ 100 的數字</div>
+            </div>
+
+            <!-- 5. 實際坪數 -->
+            <div class="form-group">
+              <label for="actualArea">實際坪數 <span style="color:var(--danger)">*</span></label>
+              <input type="number" id="actualArea" min="0" max="100" step="0.01" required placeholder="0 ~ 100" />
+              <div class="error-msg">請輸入 0 ~ 100 的數字</div>
+            </div>
+
+            <!-- 6. 車位坪數 (conditional) -->
+            <div class="form-group" id="parkingAreaGroup">
+              <label for="parkingArea">車位坪數</label>
+              <input type="number" id="parkingArea" min="0" max="100" step="0.01" placeholder="0 ~ 100" />
+              <div class="error-msg">請輸入 0 ~ 100 的數字</div>
+            </div>
+
+            <!-- 7. 廳數 -->
+            <div class="form-group">
+              <label for="livingRooms">廳數 <span style="color:var(--danger)">*</span></label>
+              <select id="livingRooms" required>
+                <option value="">請選擇</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+
+            <!-- 8. 衛數 -->
+            <div class="form-group">
+              <label for="bathrooms">衛數 <span style="color:var(--danger)">*</span></label>
+              <select id="bathrooms" required>
+                <option value="">請選擇</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+
+            <!-- 9. 單位價格/坪 (起～訖) -->
+            <div class="form-group full-width">
+              <label>單位價格/坪 <span style="color:var(--danger)">*</span></label>
+              <div class="price-range-inputs">
+                <input type="number" id="priceMin" min="0" max="100" step="0.01" required placeholder="起 (0~100)" />
+                <span>～</span>
+                <input type="number" id="priceMax" min="0" max="100" step="0.01" required placeholder="訖 (0~100)" />
+              </div>
+              <div class="error-msg" id="priceError">請輸入 0 ~ 100 的數字，且起 ≤ 訖</div>
+            </div>
+
+            <!-- 10. 單位價格區段（元；5000 元 = 0.5 萬/坪） -->
+            <div class="form-group full-width">
+              <label for="priceSegment">單位價格區段（元） <span style="color:var(--danger)">*</span></label>
+              <input type="number" id="priceSegment" min="0" max="10000" step="1" required placeholder="例：5000（＝0.5 萬/坪）" />
+              <div class="error-msg">請輸入 0 ~ 10000 的數字（單位：元）</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnCancel">取消</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmit">確認新增</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ========== Data Layer (localStorage + 記憶體 fallback) ==========
+    const STORAGE_KEY = 'property_listings_v1';
+    let memoryStore = null;          // 當 localStorage 不可用時使用
+    let storageAvailable = null;     // null = 尚未檢測
+
+    function canUseLocalStorage() {
+      if (storageAvailable !== null) return storageAvailable;
+      try {
+        const testKey = '__storage_test__';
+        window.localStorage.setItem(testKey, '1');
+        window.localStorage.removeItem(testKey);
+        storageAvailable = true;
+      } catch (e) {
+        storageAvailable = false;
+        console.warn('localStorage 不可用（可能因為沙盒限制），改用記憶體暫存。資料重新整理後會消失。');
+      }
+      return storageAvailable;
+    }
+
+    function loadData() {
+      if (canUseLocalStorage()) {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          return raw ? JSON.parse(raw) : [];
+        } catch {
+          return [];
+        }
+      }
+      // fallback to memory
+      return memoryStore ? [...memoryStore] : [];
+    }
+
+    function saveData(data) {
+      if (canUseLocalStorage()) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          return;
+        } catch (e) {
+          console.warn('寫入 localStorage 失敗，改用記憶體', e);
+        }
+      }
+      // fallback
+      memoryStore = [...data];
+    }
+
+    // Seed some sample data if empty
+    function ensureSampleData() {
+      let data = loadData();
+      if (data.length === 0) {
+        data = [
+          {
+            id: 'demo-1',
+            type: '一般',
+            rooms: '3',
+            parking: '1',
+            deedArea: 35.5,
+            actualArea: 28.2,
+            parkingArea: 8.5,
+            livingRooms: '2',
+            bathrooms: '2',
+            priceMin: 45.00,
+            priceMax: 52.50,
+            priceSegment: 5000,
+            interestRate: 2.0,
+            loanYears: 30
+          },
+          {
+            id: 'demo-2',
+            type: '地上權',
+            rooms: '2',
+            parking: '0',
+            deedArea: 22.0,
+            actualArea: 18.5,
+            parkingArea: null,
+            livingRooms: '2',
+            bathrooms: '2',
+            priceMin: 28.00,
+            priceMax: 32.00,
+            priceSegment: 10000,
+            interestRate: 2.0,
+            loanYears: 30
+          },
+          {
+            id: 'demo-3',
+            type: '一般',
+            rooms: '3',
+            parking: '2',
+            deedArea: 48.8,
+            actualArea: 39.6,
+            parkingArea: 15.2,
+            livingRooms: '3',
+            bathrooms: '3',
+            priceMin: 55.00,
+            priceMax: 68.00,
+            priceSegment: 5000,
+            interestRate: 2.0,
+            loanYears: 30
+          }
+        ];
+        saveData(data);
+      }
+      return data;
+    }
+
+    // ========== UI Helpers ==========
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+
+    const DEFAULT_INTEREST_RATE = 2.0; // 年利率 %
+    const DEFAULT_LOAN_YEARS = 30;     // 還款年限
+
+    function formatNumber(n, decimals = 2) {
+      if (n === null || n === undefined) return '-';
+      return Number(n).toLocaleString('zh-TW', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: decimals
+      });
+    }
+
+    function getInterestRate(item) {
+      const n = Number(item?.interestRate);
+      return Number.isFinite(n) && n >= 0 ? n : DEFAULT_INTEREST_RATE;
+    }
+
+    function getLoanYears(item) {
+      const n = Number(item?.loanYears);
+      return Number.isFinite(n) && n > 0 ? n : DEFAULT_LOAN_YEARS;
+    }
+
+    // 本息平均攤還月繳（本金單位：萬）
+    // M = P × r × (1+r)^n / ((1+r)^n − 1)；r 為月利率，n 為期數
+    function calcMonthlyPayment(principalWan, annualRatePercent, years) {
+      const P = Number(principalWan);
+      const annual = Number(annualRatePercent);
+      const y = Number(years);
+      if (!Number.isFinite(P) || P < 0 || !Number.isFinite(y) || y <= 0) return null;
+      if (P === 0) return 0;
+      const n = y * 12;
+      if (!Number.isFinite(annual) || annual <= 0) {
+        return P / n;
+      }
+      const r = annual / 100 / 12;
+      const factor = Math.pow(1 + r, n);
+      return P * r * factor / (factor - 1);
+    }
+
+    // 產生價格階梯：從 priceMin（萬/坪）開始，每次加上區段，直到超過 priceMax
+    // 區段單位為「元」，換算成萬：5000 元 = 0.5 萬
+    // 例：起 17、區段 5000 → 17、17.5、18、18.5 … 至迄
+    function generatePriceSteps(item) {
+      const min = Number(item.priceMin);
+      const max = Number(item.priceMax);
+      const segmentYuan = Number(item.priceSegment) || 0;
+      // 元 → 萬（1 萬 = 10000 元）
+      const step = segmentYuan / 10000;
+      const steps = [];
+
+      if (!Number.isFinite(min) || !Number.isFinite(max)) return steps;
+
+      if (step <= 0) {
+        // 區段為 0 或無效，只顯示起價與訖價（若不同）
+        steps.push(min);
+        if (max !== min) steps.push(max);
+        return steps;
+      }
+
+      let current = min;
+      // 防止無限迴圈（最多 2000 筆）
+      let guard = 0;
+      while (current <= max + 1e-9 && guard < 2000) {
+        steps.push(Number(current.toFixed(4))); // 避免浮點誤差
+        current = Number((current + step).toFixed(6));
+        guard++;
+      }
+      return steps;
+    }
+
+    // 產生單筆房屋的總價試算 HTML
+    function buildCalcHtml(item) {
+      const steps = generatePriceSteps(item);
+      const deed = Number(item.deedArea);
+      const rate = getInterestRate(item);
+      const years = getLoanYears(item);
+      const meta = `權狀 ${formatNumber(item.deedArea)} 坪 · 單價 ${formatNumber(item.priceMin)}～${formatNumber(item.priceMax)} 萬/坪 · 區段 ${formatNumber(item.priceSegment, 0)} 元 · 年利率 ${formatNumber(rate)}% · ${formatNumber(years, 0)} 年`;
+
+      if (steps.length === 0) {
+        return `
+          <div class="property-calc">
+            <div class="property-calc-header">
+              <span>📊 總價試算</span>
+              <span class="calc-meta">${meta}</span>
+            </div>
+            <div class="calc-empty">無法產生價格階梯，請檢查單位價格區間與區段設定</div>
+          </div>`;
+      }
+
+      const rows = steps.map(unitPrice => {
+        const total = unitPrice * deed;
+        const down40 = total * 0.4;
+        const loan60 = total * 0.6;
+        const down50 = total * 0.5;
+        const loan50 = total * 0.5;
+        const monthly60 = calcMonthlyPayment(loan60, rate, years);
+        const monthly50 = calcMonthlyPayment(loan50, rate, years);
+        return `
+          <tr>
+            <td>${formatNumber(unitPrice)} 萬</td>
+            <td>${formatNumber(total)} 萬</td>
+            <td class="col-scheme1">${formatNumber(down40)} 萬</td>
+            <td class="col-scheme1">${formatNumber(loan60)} 萬</td>
+            <td class="col-scheme1">${monthly60 == null ? '-' : formatNumber(monthly60) + ' 萬'}</td>
+            <td class="col-scheme2">${formatNumber(down50)} 萬</td>
+            <td class="col-scheme2">${formatNumber(loan50)} 萬</td>
+            <td class="col-scheme2">${monthly50 == null ? '-' : formatNumber(monthly50) + ' 萬'}</td>
+          </tr>`;
+      }).join('');
+
+      return `
+        <div class="property-calc">
+          <div class="property-calc-header">
+            <span>📊 總價試算</span>
+            <span class="calc-meta">${meta}</span>
+          </div>
+          <div class="calc-body">
+            <table class="calc-table">
+              <thead>
+                <tr class="scheme-group-row">
+                  <th class="th-base" rowspan="2">單位價格 / 坪</th>
+                  <th class="th-base" rowspan="2">總價</th>
+                  <th class="scheme-title scheme1-title" colspan="3">方案 1</th>
+                  <th class="scheme-title scheme2-title" colspan="3">方案 2</th>
+                </tr>
+                <tr class="scheme-col-row">
+                  <th class="scheme-sub scheme1-sub">頭期款 (40%)</th>
+                  <th class="scheme-sub scheme1-sub">貸款 (60%)</th>
+                  <th class="scheme-sub scheme1-sub">貸款月繳試算</th>
+                  <th class="scheme-sub scheme2-sub">頭期款 (50%)</th>
+                  <th class="scheme-sub scheme2-sub">貸款 (50%)</th>
+                  <th class="scheme-sub scheme2-sub">貸款月繳試算</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows}
+              </tbody>
+            </table>
+          </div>
+          <div class="calc-note">
+            總價 = 單位價格/坪 × 權狀坪數；月繳採本息平均攤還：依年利率與還款年限，由各方案貸款金額試算（單位：萬）。
+          </div>
+        </div>`;
+    }
+
+    let expandedId = null; // 目前展開總價試算的房屋 id
+
+    // ========== Render List ==========
+    function renderList() {
+      const data = loadData();
+      const type = $('#filterType').value;
+      const rooms = $('#filterRooms').value;
+      const parking = $('#filterParking').value;
+
+      const filtered = data.filter(item => {
+        if (type && item.type !== type) return false;
+        if (rooms) {
+          const roomNum = rooms.replace('房', '');
+          if (item.rooms !== roomNum) return false;
+        }
+        if (parking && item.parking !== parking) return false;
+        return true;
+      });
+
+      // 我的最愛排最上方（維持收藏時間較新者在前）
+      filtered.sort((a, b) => {
+        const af = a.favorite ? 1 : 0;
+        const bf = b.favorite ? 1 : 0;
+        if (bf !== af) return bf - af;
+        const at = Number(a.favoriteAt) || 0;
+        const bt = Number(b.favoriteAt) || 0;
+        return bt - at;
+      });
+
+      const listEl = $('#propertyList');
+      $('#countBadge').textContent = `${filtered.length} 筆`;
+
+      // 展開中的項目若被篩選掉，關閉展開
+      if (expandedId && !filtered.some(d => d.id === expandedId)) {
+        expandedId = null;
+      }
+
+      if (filtered.length === 0) {
+        listEl.classList.remove('property-list');
+        listEl.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size:2.5rem;margin-bottom:8px;">📭</div>
+            <div>目前沒有符合條件的房產資料</div>
+            <div style="font-size:0.85rem;margin-top:6px;">請調整查詢條件或新增房產</div>
+          </div>`;
+        return;
+      }
+
+      listEl.classList.add('property-list');
+      listEl.innerHTML = filtered.map(item => {
+        const rate = getInterestRate(item);
+        const years = getLoanYears(item);
+        const isFav = !!item.favorite;
+        return `
+        <div class="property-block ${item.id === expandedId ? 'expanded' : ''} ${isFav ? 'is-favorite' : ''}" data-id="${item.id}">
+          <button type="button" class="btn-favorite ${isFav ? 'active' : ''}" data-id="${item.id}" title="${isFav ? '取消我的最愛' : '加入我的最愛'}" aria-label="${isFav ? '取消我的最愛' : '加入我的最愛'}" aria-pressed="${isFav ? 'true' : 'false'}">${isFav ? '★' : '☆'}</button>
+          <div class="property-list-item" role="button" tabindex="0" aria-expanded="${item.id === expandedId ? 'true' : 'false'}">
+            <div class="list-item-main">
+              <div class="list-item-top">
+                <span class="type-badge type-${item.type}">${item.type}</span>
+                <span class="list-item-title">${item.rooms}房 ${item.livingRooms}廳 ${item.bathrooms}衛 · 車位 ${item.parking}</span>
+              </div>
+              <div class="list-item-meta">
+                <span>權狀 <strong>${formatNumber(item.deedArea)}</strong> 坪</span>
+                <span>實際 <strong>${formatNumber(item.actualArea)}</strong> 坪</span>
+                <span>車位坪數 <strong>${item.parkingArea != null ? formatNumber(item.parkingArea) : '-'}</strong></span>
+                <span>單價 <strong>${formatNumber(item.priceMin)}～${formatNumber(item.priceMax)}</strong> 萬/坪</span>
+                <span>區段 <strong>${formatNumber(item.priceSegment, 0)}</strong> 元</span>
+              </div>
+            </div>
+            <div class="loan-params" data-id="${item.id}">
+              <div class="loan-param">
+                <label for="rate-${item.id}">年利率 %</label>
+                <input type="number" id="rate-${item.id}" class="input-interest-rate" min="0" max="30" step="0.01" value="${rate}" data-id="${item.id}" />
+              </div>
+              <div class="loan-param">
+                <label for="years-${item.id}">還款年限</label>
+                <input type="number" id="years-${item.id}" class="input-loan-years" min="1" max="50" step="1" value="${years}" data-id="${item.id}" />
+              </div>
+            </div>
+            <div class="list-item-actions">
+              <button type="button" class="btn btn-edit btn-sm btn-modify" data-id="${item.id}">修改</button>
+              <button type="button" class="btn-delete" title="刪除" data-id="${item.id}">刪除</button>
+            </div>
+          </div>
+          ${buildCalcHtml(item)}
+        </div>`;
+      }).join('');
+
+      // 點擊房屋列 → 展開該筆總價試算，其餘隱藏
+      $$('.property-list-item').forEach(row => {
+        const toggle = () => {
+          const block = row.closest('.property-block');
+          const id = block.dataset.id;
+          if (expandedId === id) {
+            expandedId = null;
+          } else {
+            expandedId = id;
+          }
+          // 只更新 class，不整表重繪（保留捲動位置）
+          $$('.property-block').forEach(b => {
+            const open = b.dataset.id === expandedId;
+            b.classList.toggle('expanded', open);
+            const itemRow = b.querySelector('.property-list-item');
+            if (itemRow) itemRow.setAttribute('aria-expanded', open ? 'true' : 'false');
+          });
+        };
+
+        row.addEventListener('click', (e) => {
+          if (
+            e.target.closest('.btn-modify') ||
+            e.target.closest('.btn-delete') ||
+            e.target.closest('.btn-favorite') ||
+            e.target.closest('.loan-params')
+          ) return;
+          toggle();
+        });
+
+        row.addEventListener('keydown', (e) => {
+          if (e.target.closest('.loan-params')) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggle();
+          }
+        });
+      });
+
+      // 我的最愛：切換並排序至清單最上方
+      $$('.btn-favorite').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          const data = loadData();
+          const idx = data.findIndex(d => d.id === id);
+          if (idx === -1) return;
+          const nextFavorite = !data[idx].favorite;
+          data[idx] = {
+            ...data[idx],
+            favorite: nextFavorite,
+            favoriteAt: nextFavorite ? Date.now() : null
+          };
+          saveData(data);
+          renderList();
+        });
+      });
+
+      // 年利率 / 還款年限變更 → 寫入並即時重算月繳
+      const persistLoanParams = (id) => {
+        const rateInput = $(`.input-interest-rate[data-id="${CSS.escape(id)}"]`);
+        const yearsInput = $(`.input-loan-years[data-id="${CSS.escape(id)}"]`);
+        let rate = Number(rateInput?.value);
+        let years = Number(yearsInput?.value);
+        if (!Number.isFinite(rate) || rate < 0) rate = DEFAULT_INTEREST_RATE;
+        if (!Number.isFinite(years) || years <= 0) years = DEFAULT_LOAN_YEARS;
+
+        const data = loadData();
+        const idx = data.findIndex(d => d.id === id);
+        if (idx === -1) return;
+        data[idx] = { ...data[idx], interestRate: rate, loanYears: years };
+        saveData(data);
+
+        // 只更新該筆試算表，避免整頁重繪
+        const block = $(`.property-block[data-id="${CSS.escape(id)}"]`);
+        if (!block) return;
+        const oldCalc = block.querySelector('.property-calc');
+        if (oldCalc) {
+          const wrapper = document.createElement('div');
+          wrapper.innerHTML = buildCalcHtml(data[idx]).trim();
+          oldCalc.replaceWith(wrapper.firstElementChild);
+        }
+      };
+
+      $$('.input-interest-rate, .input-loan-years').forEach(input => {
+        input.addEventListener('click', (e) => e.stopPropagation());
+        input.addEventListener('mousedown', (e) => e.stopPropagation());
+        input.addEventListener('change', () => persistLoanParams(input.dataset.id));
+        input.addEventListener('input', () => persistLoanParams(input.dataset.id));
+      });
+
+      // Bind modify buttons → 開啟該筆資料編輯畫面
+      $$('.btn-modify').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          const item = loadData().find(d => d.id === id);
+          if (item) openEditModal(item);
+        });
+      });
+
+      // Bind delete buttons
+      $$('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          if (confirm('確定要刪除此筆房產資料嗎？')) {
+            const newData = loadData().filter(d => d.id !== id);
+            saveData(newData);
+            if (expandedId === id) expandedId = null;
+            renderList();
+          }
+        });
+      });
+    }
+
+    // ========== Modal Control ==========
+    function fillForm(item) {
+      $('#type').value = item.type || '';
+      $('#rooms').value = item.rooms || '';
+      $('#parking').value = item.parking || '';
+      $('#deedArea').value = item.deedArea ?? '';
+      $('#actualArea').value = item.actualArea ?? '';
+      $('#parkingArea').value = item.parkingArea ?? '';
+      $('#livingRooms').value = item.livingRooms || '';
+      $('#bathrooms').value = item.bathrooms || '';
+      $('#priceMin').value = item.priceMin ?? '';
+      $('#priceMax').value = item.priceMax ?? '';
+      $('#priceSegment').value = item.priceSegment ?? '';
+      updateParkingAreaVisibility();
+    }
+
+    function updateParkingAreaVisibility() {
+      const group = $('#parkingAreaGroup');
+      if ($('#parking').value === '0') {
+        group.classList.add('hidden');
+        if (!$('#editId').value) $('#parkingArea').value = '';
+      } else {
+        group.classList.remove('hidden');
+      }
+    }
+
+    function openModal() {
+      $('#addForm').reset();
+      $('#editId').value = '';
+      $('#modalTitle').textContent = '新增房產資訊';
+      $('#btnSubmit').textContent = '確認新增';
+      $('#parkingAreaGroup').classList.remove('hidden');
+      clearErrors();
+      $('#modalOverlay').classList.add('active');
+    }
+
+    function openEditModal(item) {
+      $('#addForm').reset();
+      clearErrors();
+      $('#editId').value = item.id;
+      $('#modalTitle').textContent = '修改房產資訊';
+      $('#btnSubmit').textContent = '存檔';
+      fillForm(item);
+      $('#modalOverlay').classList.add('active');
+    }
+
+    function closeModal() {
+      $('#modalOverlay').classList.remove('active');
+      $('#editId').value = '';
+    }
+
+    function clearErrors() {
+      $$('.form-group').forEach(g => g.classList.remove('has-error'));
+    }
+
+    // ========== Form Validation & Submit ==========
+    function validateNumber(val, min, max) {
+      const n = Number(val);
+      return !isNaN(n) && n >= min && n <= max;
+    }
+
+    $('#addForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      clearErrors();
+
+      const editId = $('#editId').value;
+      const type = $('#type').value;
+      const rooms = $('#rooms').value;
+      const parking = $('#parking').value;
+      const deedArea = $('#deedArea').value;
+      const actualArea = $('#actualArea').value;
+      const parkingArea = $('#parkingArea').value;
+      const livingRooms = $('#livingRooms').value;
+      const bathrooms = $('#bathrooms').value;
+      const priceMin = $('#priceMin').value;
+      const priceMax = $('#priceMax').value;
+      const priceSegment = $('#priceSegment').value;
+
+      let hasError = false;
+
+      // Required selects
+      if (!type || !rooms || !parking || !livingRooms || !bathrooms) {
+        hasError = true;
+      }
+
+      // Number ranges
+      if (!validateNumber(deedArea, 0, 100)) {
+        $('#deedArea').closest('.form-group').classList.add('has-error');
+        hasError = true;
+      }
+      if (!validateNumber(actualArea, 0, 100)) {
+        $('#actualArea').closest('.form-group').classList.add('has-error');
+        hasError = true;
+      }
+      if (parking !== '0') {
+        if (parkingArea === '' || !validateNumber(parkingArea, 0, 100)) {
+          $('#parkingArea').closest('.form-group').classList.add('has-error');
+          hasError = true;
+        }
+      }
+      if (!validateNumber(priceMin, 0, 100) || !validateNumber(priceMax, 0, 100) || Number(priceMin) > Number(priceMax)) {
+        $('#priceMin').closest('.form-group').classList.add('has-error');
+        hasError = true;
+      }
+      if (!validateNumber(priceSegment, 0, 10000)) {
+        $('#priceSegment').closest('.form-group').classList.add('has-error');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      const payload = {
+        type,
+        rooms,
+        parking,
+        deedArea: Number(deedArea),
+        actualArea: Number(actualArea),
+        parkingArea: parking === '0' ? null : Number(parkingArea),
+        livingRooms,
+        bathrooms,
+        priceMin: Number(priceMin),
+        priceMax: Number(priceMax),
+        priceSegment: Number(priceSegment)
+      };
+
+      const data = loadData();
+
+      if (editId) {
+        // 修改：更新既有資料
+        const idx = data.findIndex(d => d.id === editId);
+        if (idx === -1) {
+          alert('找不到要修改的資料');
+          return;
+        }
+        data[idx] = { ...data[idx], ...payload };
+        saveData(data);
+      } else {
+        // 新增
+        const newItem = {
+          id: 'p-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          ...payload,
+          interestRate: DEFAULT_INTEREST_RATE,
+          loanYears: DEFAULT_LOAN_YEARS,
+          favorite: false,
+          favoriteAt: null
+        };
+        data.unshift(newItem);
+        saveData(data);
+      }
+
+      closeModal();
+      renderList();
+    });
+
+    // ========== Theme ==========
+    const THEME_KEY = 'ui_theme_v1';
+
+    function getTheme() {
+      const t = document.documentElement.getAttribute('data-theme');
+      return t === 'dark' ? 'dark' : 'light';
+    }
+
+    function applyTheme(theme) {
+      const next = theme === 'dark' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      try {
+        localStorage.setItem(THEME_KEY, next);
+      } catch (e) { /* ignore */ }
+
+      const toggle = $('#themeToggle');
+      const knob = $('#themeToggleKnob');
+      if (toggle) {
+        toggle.setAttribute('aria-checked', next === 'dark' ? 'true' : 'false');
+        toggle.title = next === 'dark' ? '切換為淺色主題' : '切換為深色主題';
+      }
+      if (knob) knob.textContent = next === 'dark' ? '🌙' : '☀️';
+    }
+
+    function toggleTheme() {
+      applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
+    }
+
+    // 同步 header switch 狀態（HTML 已在 head 預先套用 data-theme）
+    applyTheme(getTheme());
+    $('#themeToggle').addEventListener('click', toggleTheme);
+
+    // ========== Event Bindings ==========
+    $('#btnAdd').addEventListener('click', openModal);
+    $('#btnCloseModal').addEventListener('click', closeModal);
+    $('#btnCancel').addEventListener('click', closeModal);
+
+    $('#modalOverlay').addEventListener('click', (e) => {
+      if (e.target === $('#modalOverlay')) closeModal();
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Parking change → show/hide parking area
+    $('#parking').addEventListener('change', () => {
+      if ($('#parking').value === '0') {
+        $('#parkingAreaGroup').classList.add('hidden');
+        $('#parkingArea').value = '';
+      } else {
+        $('#parkingAreaGroup').classList.remove('hidden');
+      }
+    });
+
+    // Filters
+    ['filterType', 'filterRooms', 'filterParking'].forEach(id => {
+      $(`#${id}`).addEventListener('change', renderList);
+    });
+
+    // ========== Init ==========
+    ensureSampleData();
+    renderList();
+  </script>
+</body>
+</html>
