@@ -710,8 +710,22 @@
       transition: transform 0.25s;
     }
 
+    .modal.modal-sm {
+      max-width: 400px;
+    }
+
     .modal-overlay.active .modal {
       transform: translateY(0);
+    }
+
+    .confirm-message {
+      font-size: 0.95rem;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .modal-header.confirm-header h3 {
+      color: var(--danger);
     }
 
     .modal-header {
@@ -1116,6 +1130,23 @@
       <span class="site-footer-version">版本 <span id="appVersion"></span></span>
     </div>
   </footer>
+
+  <!-- Delete Confirm Modal -->
+  <div class="modal-overlay" id="confirmOverlay">
+    <div class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="modal-header confirm-header">
+        <h3 id="confirmTitle">刪除確認</h3>
+        <button type="button" class="modal-close" id="btnCloseConfirm" aria-label="關閉">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-message" id="confirmMessage">確定要刪除此筆房產資料嗎？此操作無法復原。</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btnConfirmCancel">取消</button>
+        <button type="button" class="btn btn-danger" id="btnConfirmOk">確認刪除</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Add / Edit Modal -->
   <div class="modal-overlay" id="modalOverlay">
@@ -1741,15 +1772,34 @@
       $$('.btn-delete').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          const id = btn.dataset.id;
-          if (confirm('確定要刪除此筆房產資料嗎？')) {
-            const newData = loadData().filter(d => d.id !== id);
-            saveData(newData);
-            if (expandedId === id) expandedId = null;
-            renderList();
-          }
+          openDeleteConfirm(btn.dataset.id);
         });
       });
+    }
+
+    // ========== Delete Confirm Modal ==========
+    let pendingDeleteId = null;
+
+    function openDeleteConfirm(id) {
+      pendingDeleteId = id;
+      $('#confirmTitle').textContent = '刪除確認';
+      $('#confirmMessage').textContent = '確定要刪除此筆房產資料嗎？此操作無法復原。';
+      $('#confirmOverlay').classList.add('active');
+    }
+
+    function closeDeleteConfirm() {
+      pendingDeleteId = null;
+      $('#confirmOverlay').classList.remove('active');
+    }
+
+    function executePendingDelete() {
+      if (!pendingDeleteId) return;
+      const id = pendingDeleteId;
+      const newData = loadData().filter(d => d.id !== id);
+      saveData(newData);
+      if (expandedId === id) expandedId = null;
+      closeDeleteConfirm();
+      renderList();
     }
 
     // ========== Modal Control ==========
@@ -1955,9 +2005,22 @@
       if (e.target === $('#modalOverlay')) closeModal();
     });
 
-    // Close on Escape
+    // Delete confirm modal
+    $('#btnCloseConfirm').addEventListener('click', closeDeleteConfirm);
+    $('#btnConfirmCancel').addEventListener('click', closeDeleteConfirm);
+    $('#btnConfirmOk').addEventListener('click', executePendingDelete);
+    $('#confirmOverlay').addEventListener('click', (e) => {
+      if (e.target === $('#confirmOverlay')) closeDeleteConfirm();
+    });
+
+    // Close on Escape（優先關閉刪除確認）
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeModal();
+      if (e.key !== 'Escape') return;
+      if ($('#confirmOverlay').classList.contains('active')) {
+        closeDeleteConfirm();
+        return;
+      }
+      closeModal();
     });
 
     // Parking change → show/hide parking area
