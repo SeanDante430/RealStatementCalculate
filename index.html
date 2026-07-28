@@ -1052,6 +1052,12 @@
     .hidden {
       display: none !important;
     }
+
+    /* 保留 grid 位置，僅停用欄位（避免後續列上移） */
+    .form-group.field-inactive {
+      visibility: hidden;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -1179,7 +1185,20 @@
               </select>
             </div>
 
-            <!-- 3. 車位數 -->
+            <!-- 第二行：權狀坪數（左）、實際坪數（右） -->
+            <div class="form-group">
+              <label for="deedArea">權狀坪數 <span style="color:var(--danger)">*</span></label>
+              <input type="number" id="deedArea" min="0" max="100" step="0.01" required placeholder="0 ~ 100" />
+              <div class="error-msg">請輸入 0 ~ 100 的數字</div>
+            </div>
+
+            <div class="form-group">
+              <label for="actualArea">實際坪數 <span style="color:var(--danger)">*</span></label>
+              <input type="number" id="actualArea" min="0" max="100" step="0.01" required placeholder="0 ~ 100" />
+              <div class="error-msg">請輸入 0 ~ 100 的數字</div>
+            </div>
+
+            <!-- 第三行：車位數、車位坪數 -->
             <div class="form-group">
               <label for="parking">車位數 <span style="color:var(--danger)">*</span></label>
               <select id="parking" required>
@@ -1190,28 +1209,13 @@
               </select>
             </div>
 
-            <!-- 4. 權狀坪數 -->
-            <div class="form-group">
-              <label for="deedArea">權狀坪數 <span style="color:var(--danger)">*</span></label>
-              <input type="number" id="deedArea" min="0" max="100" step="0.01" required placeholder="0 ~ 100" />
-              <div class="error-msg">請輸入 0 ~ 100 的數字</div>
-            </div>
-
-            <!-- 5. 實際坪數 -->
-            <div class="form-group">
-              <label for="actualArea">實際坪數 <span style="color:var(--danger)">*</span></label>
-              <input type="number" id="actualArea" min="0" max="100" step="0.01" required placeholder="0 ~ 100" />
-              <div class="error-msg">請輸入 0 ~ 100 的數字</div>
-            </div>
-
-            <!-- 6. 車位坪數 (conditional) -->
             <div class="form-group" id="parkingAreaGroup">
               <label for="parkingArea">車位坪數</label>
               <input type="number" id="parkingArea" min="0" max="100" step="0.01" placeholder="0 ~ 100" />
               <div class="error-msg">請輸入 0 ~ 100 的數字</div>
             </div>
 
-            <!-- 7. 廳數 -->
+            <!-- 廳數 -->
             <div class="form-group">
               <label for="livingRooms">廳數 <span style="color:var(--danger)">*</span></label>
               <select id="livingRooms" required>
@@ -1371,8 +1375,8 @@
             priceSegment: 5000,
             interestRate: 2.0,
             loanYears: 30,
-            scheme1DownPct: 40,
-            scheme2DownPct: 50
+            scheme1DownPct: 20,
+            scheme2DownPct: 30
           },
           {
             id: 'demo-2',
@@ -1407,8 +1411,8 @@
             priceSegment: 5000,
             interestRate: 2.0,
             loanYears: 30,
-            scheme1DownPct: 40,
-            scheme2DownPct: 50
+            scheme1DownPct: 20,
+            scheme2DownPct: 30
           }
         ];
         saveData(data);
@@ -1422,8 +1426,28 @@
 
     const DEFAULT_INTEREST_RATE = 2.0; // 年利率 %
     const DEFAULT_LOAN_YEARS = 30;     // 還款年限
-    const DEFAULT_SCHEME1_DOWN_PCT = 40; // 方案1 頭期款 %
-    const DEFAULT_SCHEME2_DOWN_PCT = 50; // 方案2 頭期款 %
+
+    // 依房屋類型預設頭期款：一般 20%/30%；地上權 40%/50%
+    function getDefaultSchemeDownPct(type, scheme) {
+      if (type === '一般') {
+        return scheme === 1 ? 20 : 30;
+      }
+      if (type === '地上權') {
+        return scheme === 1 ? 40 : 50;
+      }
+      // 尚未選擇類型時的後備預設
+      return scheme === 1 ? 20 : 30;
+    }
+
+    function applySchemeDownDefaultsByType(type) {
+      if (!type) {
+        $('#scheme1DownPct').value = '';
+        $('#scheme2DownPct').value = '';
+        return;
+      }
+      $('#scheme1DownPct').value = String(getDefaultSchemeDownPct(type, 1));
+      $('#scheme2DownPct').value = String(getDefaultSchemeDownPct(type, 2));
+    }
 
     function formatNumber(n, decimals = 2) {
       if (n === null || n === undefined) return '-';
@@ -1443,12 +1467,13 @@
       return Number.isFinite(n) && n > 0 ? n : DEFAULT_LOAN_YEARS;
     }
 
-    // 頭期款比例 10~90，以 10 為單位
+    // 頭期款比例 10~90，以 10 為單位；缺值時依房屋類型給預設
     function getSchemeDownPct(item, scheme) {
       const key = scheme === 1 ? 'scheme1DownPct' : 'scheme2DownPct';
-      const fallback = scheme === 1 ? DEFAULT_SCHEME1_DOWN_PCT : DEFAULT_SCHEME2_DOWN_PCT;
       const n = Number(item?.[key]);
-      if (!Number.isFinite(n) || n < 10 || n > 90 || n % 10 !== 0) return fallback;
+      if (!Number.isFinite(n) || n < 10 || n > 90 || n % 10 !== 0) {
+        return getDefaultSchemeDownPct(item?.type, scheme);
+      }
       return n;
     }
 
@@ -1822,11 +1847,18 @@
 
     function updateParkingAreaVisibility() {
       const group = $('#parkingAreaGroup');
+      const input = $('#parkingArea');
+      // 用 visibility 隱藏，保留第 3 行欄位佔位，廳數／衛數維持在第 4 行
       if ($('#parking').value === '0') {
-        group.classList.add('hidden');
-        if (!$('#editId').value) $('#parkingArea').value = '';
-      } else {
+        group.classList.add('field-inactive');
         group.classList.remove('hidden');
+        input.disabled = true;
+        input.removeAttribute('required');
+        if (!$('#editId').value) input.value = '';
+      } else {
+        group.classList.remove('field-inactive');
+        group.classList.remove('hidden');
+        input.disabled = false;
       }
     }
 
@@ -1835,9 +1867,9 @@
       $('#editId').value = '';
       $('#modalTitle').textContent = '新增房產資訊';
       $('#btnSubmit').textContent = '確認新增';
-      $('#parkingAreaGroup').classList.remove('hidden');
-      $('#scheme1DownPct').value = String(DEFAULT_SCHEME1_DOWN_PCT);
-      $('#scheme2DownPct').value = String(DEFAULT_SCHEME2_DOWN_PCT);
+      // 頭期款預設依房屋類型；尚未選類型時先清空
+      applySchemeDownDefaultsByType('');
+      updateParkingAreaVisibility();
       clearErrors();
       $('#modalOverlay').classList.add('active');
     }
@@ -2023,14 +2055,20 @@
       closeModal();
     });
 
-    // Parking change → show/hide parking area
+    // Parking change → 啟用／停用車位坪數（仍佔第 3 行，不影響第 4 行位置）
     $('#parking').addEventListener('change', () => {
       if ($('#parking').value === '0') {
-        $('#parkingAreaGroup').classList.add('hidden');
         $('#parkingArea').value = '';
-      } else {
-        $('#parkingAreaGroup').classList.remove('hidden');
       }
+      updateParkingAreaVisibility();
+    });
+
+    // 新增時：房屋類型變更 → 套用方案頭期款預設
+    // 一般：方案1 20%、方案2 30%；地上權：方案1 40%、方案2 50%
+    $('#type').addEventListener('change', () => {
+      // 修改既有資料時不強制覆寫使用者已存的比例
+      if ($('#editId').value) return;
+      applySchemeDownDefaultsByType($('#type').value);
     });
 
     // Filters
