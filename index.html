@@ -552,6 +552,48 @@
       color: var(--text);
     }
 
+    .list-item-mid {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px 16px;
+      flex-wrap: wrap;
+    }
+
+    .list-item-prices {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .price-chip {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 8px;
+      background: var(--primary-soft);
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .price-chip strong {
+      color: var(--primary);
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+    }
+
+    .price-chip .unit {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--primary-soft-text);
+    }
+
     .list-item-building {
       font-weight: 700;
       font-size: 1.02rem;
@@ -1297,15 +1339,25 @@
               </select>
             </div>
 
-            <!-- 9. 單位價格/坪 (起～訖) -->
+            <!-- 開價（總價，萬）→ 依權狀坪數自動帶入單位價格「迄」 -->
             <div class="form-group full-width">
-              <label>單位價格/坪 <span style="color:var(--danger)">*</span></label>
-              <div class="price-range-inputs">
-                <input type="number" id="priceMin" min="0" max="100" step="0.01" required placeholder="起 (0~100)" />
-                <span>～</span>
-                <input type="number" id="priceMax" min="0" max="100" step="0.01" required placeholder="訖 (0~100)" />
+              <label for="listingPrice">開價（萬） <span style="color:var(--danger)">*</span></label>
+              <input type="number" id="listingPrice" min="0" max="100000" step="0.01" required placeholder="例：1500（總價，單位：萬）" />
+              <div class="error-msg">請輸入 0 以上的開價（單位：萬）</div>
+              <div class="field-hint" id="unitPriceHint" style="font-size:0.8rem;color:var(--muted);margin-top:4px;">
+                每坪價格 = 開價 ÷ 權狀坪數；「迄」= 每坪，「起」= 迄 × 0.7
               </div>
-              <div class="error-msg" id="priceError">請輸入 0 ~ 100 的數字，且起 ≤ 訖</div>
+            </div>
+
+            <!-- 單位價格/坪 (起～訖) -->
+            <div class="form-group full-width">
+              <label>單位價格/坪（萬） <span style="color:var(--danger)">*</span></label>
+              <div class="price-range-inputs">
+                <input type="number" id="priceMin" min="0" max="999" step="0.01" required placeholder="起" />
+                <span>～</span>
+                <input type="number" id="priceMax" min="0" max="999" step="0.01" required placeholder="訖（可由開價自動帶入）" />
+              </div>
+              <div class="error-msg" id="priceError">請輸入有效數字，且起 ≤ 訖</div>
             </div>
 
             <!-- 10. 單位價格區段（元；5000 元 = 0.5 萬/坪） -->
@@ -1332,21 +1384,11 @@
               </select>
             </div>
 
-            <!-- 12. 方案2 頭期款比例 -->
+            <!-- 12. 方案2 頭期款比例（手動輸入 1~99%） -->
             <div class="form-group">
-              <label for="scheme2DownPct">方案2：頭期款 <span style="color:var(--danger)">*</span></label>
-              <select id="scheme2DownPct" required>
-                <option value="">請選擇</option>
-                <option value="10">10%</option>
-                <option value="20">20%</option>
-                <option value="30">30%</option>
-                <option value="40">40%</option>
-                <option value="50">50%</option>
-                <option value="60">60%</option>
-                <option value="70">70%</option>
-                <option value="80">80%</option>
-                <option value="90">90%</option>
-              </select>
+              <label for="scheme2DownPct">方案2：頭期款（%） <span style="color:var(--danger)">*</span></label>
+              <input type="number" id="scheme2DownPct" min="1" max="99" step="1" required placeholder="1 ~ 99" />
+              <div class="error-msg">請輸入 1 ~ 99 的整數</div>
             </div>
           </div>
         </div>
@@ -1361,7 +1403,7 @@
   <script>
     // ========== App Version ==========
     // 發版時請更新 APP_VERSION
-    const APP_VERSION = '1.3.0';
+    const APP_VERSION = '1.5.0';
 
     function renderFooterVersion() {
       const yearEl = document.getElementById('footerYear');
@@ -1433,6 +1475,7 @@
             parkingArea: 8.5,
             livingRooms: '2',
             bathrooms: '2',
+            listingPrice: 1863.75,
             priceMin: 45.00,
             priceMax: 52.50,
             priceSegment: 5000,
@@ -1454,6 +1497,7 @@
             parkingArea: null,
             livingRooms: '2',
             bathrooms: '2',
+            listingPrice: 704,
             priceMin: 28.00,
             priceMax: 32.00,
             priceSegment: 10000,
@@ -1475,6 +1519,7 @@
             parkingArea: 15.2,
             livingRooms: '3',
             bathrooms: '3',
+            listingPrice: 3318.4,
             priceMin: 55.00,
             priceMax: 68.00,
             priceSegment: 5000,
@@ -1560,6 +1605,44 @@
       return url;
     }
 
+    // 每坪價格（萬/坪）= 開價（萬）÷ 權狀坪數
+    function calcUnitPriceFromListing(listingPrice, deedArea) {
+      const p = Number(listingPrice);
+      const a = Number(deedArea);
+      if (!Number.isFinite(p) || p < 0 || !Number.isFinite(a) || a <= 0) return null;
+      return Number((p / a).toFixed(2));
+    }
+
+    function getListingPrice(item) {
+      const n = Number(item?.listingPrice);
+      return Number.isFinite(n) && n >= 0 ? n : null;
+    }
+
+    function getUnitPricePerPing(item) {
+      const fromListing = calcUnitPriceFromListing(item?.listingPrice, item?.deedArea);
+      if (fromListing != null) return fromListing;
+      const max = Number(item?.priceMax);
+      return Number.isFinite(max) ? max : null;
+    }
+
+    // 依開價與權狀坪數：迄 = 每坪；起 = 迄 × 0.7
+    function syncPriceMaxFromListing() {
+      const unit = calcUnitPriceFromListing($('#listingPrice').value, $('#deedArea').value);
+      const hint = $('#unitPriceHint');
+      if (unit == null) {
+        if (hint) {
+          hint.textContent = '每坪價格 = 開價 ÷ 權狀坪數；「迄」= 每坪，「起」= 迄 × 0.7';
+        }
+        return;
+      }
+      const priceStart = Number((unit * 0.7).toFixed(2));
+      $('#priceMax').value = unit;
+      $('#priceMin').value = priceStart;
+      if (hint) {
+        hint.textContent = `每坪 ${formatNumber(unit)} 萬／坪 → 起 ${formatNumber(priceStart)}、迄 ${formatNumber(unit)}`;
+      }
+    }
+
     function getInterestRate(item) {
       const n = Number(item?.interestRate);
       return Number.isFinite(n) && n >= 0 ? n : DEFAULT_INTEREST_RATE;
@@ -1570,14 +1653,21 @@
       return Number.isFinite(n) && n > 0 ? n : DEFAULT_LOAN_YEARS;
     }
 
-    // 頭期款比例 10~90，以 10 為單位；缺值時依房屋類型給預設
+    // 方案1：10~90（10 為單位）；方案2：1~99 手動；缺值時依房屋類型給預設
     function getSchemeDownPct(item, scheme) {
       const key = scheme === 1 ? 'scheme1DownPct' : 'scheme2DownPct';
       const n = Number(item?.[key]);
-      if (!Number.isFinite(n) || n < 10 || n > 90 || n % 10 !== 0) {
-        return getDefaultSchemeDownPct(item?.type, scheme);
+      if (scheme === 1) {
+        if (!Number.isFinite(n) || n < 10 || n > 90 || n % 10 !== 0) {
+          return getDefaultSchemeDownPct(item?.type, 1);
+        }
+        return n;
       }
-      return n;
+      // 方案2：1~99
+      if (!Number.isFinite(n) || n < 1 || n > 99) {
+        return getDefaultSchemeDownPct(item?.type, 2);
+      }
+      return Math.round(n);
     }
 
     // 本息平均攤還月繳（本金單位：萬）
@@ -1780,12 +1870,18 @@
                 ${mapLinkHtml}
                 ${sourceLinkHtml}
               </div>
-              <div class="list-item-title">${item.rooms}房 ${item.livingRooms}廳 ${item.bathrooms}衛 · 車位 ${item.parking}</div>
+              <div class="list-item-mid">
+                <div class="list-item-title">${item.rooms}房 ${item.livingRooms}廳 ${item.bathrooms}衛 · 車位 ${item.parking}</div>
+                <div class="list-item-prices">
+                  <span class="price-chip">開價 <strong>${getListingPrice(item) != null ? formatNumber(getListingPrice(item)) : '-'}</strong><span class="unit">萬</span></span>
+                  <span class="price-chip">每坪 <strong>${getUnitPricePerPing(item) != null ? formatNumber(getUnitPricePerPing(item)) : '-'}</strong><span class="unit">萬</span></span>
+                </div>
+              </div>
               <div class="list-item-meta">
                 <span>權狀 <strong>${formatNumber(item.deedArea)}</strong> 坪</span>
                 <span>實際 <strong>${formatNumber(item.actualArea)}</strong> 坪</span>
                 <span>車位坪數 <strong>${item.parkingArea != null ? formatNumber(item.parkingArea) : '-'}</strong></span>
-                <span>單價 <strong>${formatNumber(item.priceMin)}～${formatNumber(item.priceMax)}</strong> 萬/坪</span>
+                <span>試算單價 <strong>${formatNumber(item.priceMin)}～${formatNumber(item.priceMax)}</strong> 萬/坪</span>
                 <span>區段 <strong>${formatNumber(item.priceSegment, 0)}</strong> 元</span>
               </div>
             </div>
@@ -1957,12 +2053,14 @@
       $('#parkingArea').value = item.parkingArea ?? '';
       $('#livingRooms').value = item.livingRooms || '';
       $('#bathrooms').value = item.bathrooms || '';
+      $('#listingPrice').value = item.listingPrice ?? '';
       $('#priceMin').value = item.priceMin ?? '';
       $('#priceMax').value = item.priceMax ?? '';
       $('#priceSegment').value = item.priceSegment ?? '';
       $('#scheme1DownPct').value = String(getSchemeDownPct(item, 1));
       $('#scheme2DownPct').value = String(getSchemeDownPct(item, 2));
       updateParkingAreaVisibility();
+      syncPriceMaxFromListing();
     }
 
     function updateParkingAreaVisibility() {
@@ -2035,6 +2133,7 @@
       const parkingArea = $('#parkingArea').value;
       const livingRooms = $('#livingRooms').value;
       const bathrooms = $('#bathrooms').value;
+      const listingPrice = $('#listingPrice').value;
       const priceMin = $('#priceMin').value;
       const priceMax = $('#priceMax').value;
       const priceSegment = $('#priceSegment').value;
@@ -2044,7 +2143,7 @@
       let hasError = false;
 
       // Required selects
-      if (!type || !rooms || !parking || !livingRooms || !bathrooms || !scheme1DownPct || !scheme2DownPct) {
+      if (!type || !rooms || !parking || !livingRooms || !bathrooms || !scheme1DownPct) {
         hasError = true;
       }
 
@@ -2078,12 +2177,28 @@
           hasError = true;
         }
       }
-      if (!validateNumber(priceMin, 0, 100) || !validateNumber(priceMax, 0, 100) || Number(priceMin) > Number(priceMax)) {
+      if (!validateNumber(listingPrice, 0, 100000)) {
+        $('#listingPrice').closest('.form-group').classList.add('has-error');
+        hasError = true;
+      }
+      if (!validateNumber(priceMin, 0, 999) || !validateNumber(priceMax, 0, 999) || Number(priceMin) > Number(priceMax)) {
         $('#priceMin').closest('.form-group').classList.add('has-error');
         hasError = true;
       }
       if (!validateNumber(priceSegment, 0, 10000)) {
         $('#priceSegment').closest('.form-group').classList.add('has-error');
+        hasError = true;
+      }
+      // 方案2 頭期款：1~99 整數
+      const scheme2Num = Number(scheme2DownPct);
+      if (
+        scheme2DownPct === '' ||
+        !Number.isFinite(scheme2Num) ||
+        !Number.isInteger(scheme2Num) ||
+        scheme2Num < 1 ||
+        scheme2Num > 99
+      ) {
+        $('#scheme2DownPct').closest('.form-group').classList.add('has-error');
         hasError = true;
       }
 
@@ -2101,11 +2216,12 @@
         parkingArea: parking === '0' ? null : Number(parkingArea),
         livingRooms,
         bathrooms,
+        listingPrice: Number(listingPrice),
         priceMin: Number(priceMin),
         priceMax: Number(priceMax),
         priceSegment: Number(priceSegment),
         scheme1DownPct: Number(scheme1DownPct),
-        scheme2DownPct: Number(scheme2DownPct)
+        scheme2DownPct: scheme2Num
       };
 
       const data = loadData();
@@ -2210,6 +2326,12 @@
       // 修改既有資料時不強制覆寫使用者已存的比例
       if ($('#editId').value) return;
       applySchemeDownDefaultsByType($('#type').value);
+    });
+
+    // 開價或權狀坪數變更 → 自動計算每坪並帶入「迄」
+    ['listingPrice', 'deedArea'].forEach(id => {
+      $(`#${id}`).addEventListener('input', syncPriceMaxFromListing);
+      $(`#${id}`).addEventListener('change', syncPriceMaxFromListing);
     });
 
     // Filters
