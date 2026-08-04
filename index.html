@@ -552,6 +552,45 @@
       color: var(--text);
     }
 
+    .list-item-building {
+      font-weight: 700;
+      font-size: 1.02rem;
+      color: var(--text);
+    }
+
+    .list-item-map-link,
+    .list-item-source-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--primary);
+      text-decoration: none;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: var(--primary-soft);
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .list-item-source-link {
+      color: var(--scheme2-sub-text);
+      background: var(--scheme2-sub-bg);
+    }
+
+    .list-item-map-link:hover,
+    .list-item-source-link:hover {
+      text-decoration: underline;
+      border-color: var(--expanded-border);
+    }
+
+    .list-item-map-missing,
+    .list-item-source-missing {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
     .list-item-meta {
       display: flex;
       flex-wrap: wrap;
@@ -1165,6 +1204,27 @@
         <input type="hidden" id="editId" value="" />
         <div class="modal-body">
           <div class="form-grid">
+            <!-- 建物名稱 -->
+            <div class="form-group full-width">
+              <label for="buildingName">建物名稱 <span style="color:var(--danger)">*</span></label>
+              <input type="text" id="buildingName" required maxlength="80" placeholder="例：信義區某某大樓" />
+              <div class="error-msg">請輸入建物名稱</div>
+            </div>
+
+            <!-- Google 地圖超連結 -->
+            <div class="form-group full-width">
+              <label for="mapUrl">Google 地圖超連結</label>
+              <input type="url" id="mapUrl" maxlength="500" placeholder="https://maps.google.com/… 或 https://maps.app.goo.gl/…" />
+              <div class="error-msg">請輸入有效的網址（需以 http:// 或 https:// 開頭）</div>
+            </div>
+
+            <!-- 來源網站 -->
+            <div class="form-group full-width">
+              <label for="sourceUrl">來源網站</label>
+              <input type="url" id="sourceUrl" maxlength="500" placeholder="https://…（物件資訊來源網址）" />
+              <div class="error-msg">請輸入有效的網址（需以 http:// 或 https:// 開頭）</div>
+            </div>
+
             <!-- 1. 房屋類型 -->
             <div class="form-group">
               <label for="type">房屋類型 <span style="color:var(--danger)">*</span></label>
@@ -1362,6 +1422,9 @@
         data = [
           {
             id: 'demo-1',
+            buildingName: '信義示範宅',
+            mapUrl: 'https://maps.google.com/',
+            sourceUrl: 'https://example.com/',
             type: '一般',
             rooms: '3',
             parking: '1',
@@ -1380,6 +1443,9 @@
           },
           {
             id: 'demo-2',
+            buildingName: '中山地上權案',
+            mapUrl: '',
+            sourceUrl: '',
             type: '地上權',
             rooms: '2',
             parking: '0',
@@ -1398,6 +1464,9 @@
           },
           {
             id: 'demo-3',
+            buildingName: '大安景觀宅',
+            mapUrl: 'https://maps.app.goo.gl/',
+            sourceUrl: 'https://example.com/',
             type: '一般',
             rooms: '3',
             parking: '2',
@@ -1455,6 +1524,40 @@
         minimumFractionDigits: 0,
         maximumFractionDigits: decimals
       });
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function isValidHttpUrl(value) {
+      if (!value) return true; // 選填
+      try {
+        const u = new URL(value);
+        return u.protocol === 'http:' || u.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    }
+
+    function getBuildingName(item) {
+      const name = (item?.buildingName || '').trim();
+      return name || '未命名建物';
+    }
+
+    function getMapUrl(item) {
+      const url = (item?.mapUrl || '').trim();
+      return url;
+    }
+
+    function getSourceUrl(item) {
+      const url = (item?.sourceUrl || '').trim();
+      return url;
     }
 
     function getInterestRate(item) {
@@ -1657,6 +1760,15 @@
         const rate = getInterestRate(item);
         const years = getLoanYears(item);
         const isFav = !!item.favorite;
+        const buildingName = escapeHtml(getBuildingName(item));
+        const mapUrl = getMapUrl(item);
+        const sourceUrl = getSourceUrl(item);
+        const mapLinkHtml = mapUrl
+          ? `<a class="list-item-map-link" href="${escapeHtml(mapUrl)}" target="_blank" rel="noopener noreferrer" title="在新分頁開啟 Google 地圖">📍 Google 地圖</a>`
+          : `<span class="list-item-map-missing">未設定地圖</span>`;
+        const sourceLinkHtml = sourceUrl
+          ? `<a class="list-item-source-link" href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer" title="在新分頁開啟來源網站">🔗 來源網站</a>`
+          : `<span class="list-item-source-missing">未設定來源</span>`;
         return `
         <div class="property-block ${item.id === expandedId ? 'expanded' : ''} ${isFav ? 'is-favorite' : ''}" data-id="${item.id}">
           <button type="button" class="btn-favorite ${isFav ? 'active' : ''}" data-id="${item.id}" title="${isFav ? '取消我的最愛' : '加入我的最愛'}" aria-label="${isFav ? '取消我的最愛' : '加入我的最愛'}" aria-pressed="${isFav ? 'true' : 'false'}">${isFav ? '★' : '☆'}</button>
@@ -1664,8 +1776,11 @@
             <div class="list-item-main">
               <div class="list-item-top">
                 <span class="type-badge type-${item.type}">${item.type}</span>
-                <span class="list-item-title">${item.rooms}房 ${item.livingRooms}廳 ${item.bathrooms}衛 · 車位 ${item.parking}</span>
+                <span class="list-item-building">${buildingName}</span>
+                ${mapLinkHtml}
+                ${sourceLinkHtml}
               </div>
+              <div class="list-item-title">${item.rooms}房 ${item.livingRooms}廳 ${item.bathrooms}衛 · 車位 ${item.parking}</div>
               <div class="list-item-meta">
                 <span>權狀 <strong>${formatNumber(item.deedArea)}</strong> 坪</span>
                 <span>實際 <strong>${formatNumber(item.actualArea)}</strong> 坪</span>
@@ -1717,7 +1832,9 @@
             e.target.closest('.btn-modify') ||
             e.target.closest('.btn-delete') ||
             e.target.closest('.btn-favorite') ||
-            e.target.closest('.loan-params')
+            e.target.closest('.loan-params') ||
+            e.target.closest('.list-item-map-link') ||
+            e.target.closest('.list-item-source-link')
           ) return;
           toggle();
         });
@@ -1829,6 +1946,9 @@
 
     // ========== Modal Control ==========
     function fillForm(item) {
+      $('#buildingName').value = item.buildingName || '';
+      $('#mapUrl').value = item.mapUrl || '';
+      $('#sourceUrl').value = item.sourceUrl || '';
       $('#type').value = item.type || '';
       $('#rooms').value = item.rooms || '';
       $('#parking').value = item.parking || '';
@@ -1904,6 +2024,9 @@
       clearErrors();
 
       const editId = $('#editId').value;
+      const buildingName = ($('#buildingName').value || '').trim();
+      const mapUrl = ($('#mapUrl').value || '').trim();
+      const sourceUrl = ($('#sourceUrl').value || '').trim();
       const type = $('#type').value;
       const rooms = $('#rooms').value;
       const parking = $('#parking').value;
@@ -1922,6 +2045,21 @@
 
       // Required selects
       if (!type || !rooms || !parking || !livingRooms || !bathrooms || !scheme1DownPct || !scheme2DownPct) {
+        hasError = true;
+      }
+
+      if (!buildingName) {
+        $('#buildingName').closest('.form-group').classList.add('has-error');
+        hasError = true;
+      }
+
+      if (!isValidHttpUrl(mapUrl)) {
+        $('#mapUrl').closest('.form-group').classList.add('has-error');
+        hasError = true;
+      }
+
+      if (!isValidHttpUrl(sourceUrl)) {
+        $('#sourceUrl').closest('.form-group').classList.add('has-error');
         hasError = true;
       }
 
@@ -1952,6 +2090,9 @@
       if (hasError) return;
 
       const payload = {
+        buildingName,
+        mapUrl,
+        sourceUrl,
         type,
         rooms,
         parking,
