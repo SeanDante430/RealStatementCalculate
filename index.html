@@ -382,6 +382,13 @@
       min-width: 0;
     }
 
+    .list-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
     .list-header h2 {
       font-size: 1.15rem;
       font-weight: 600;
@@ -1232,7 +1239,12 @@
         <h2>房產清單</h2>
         <span class="count-badge" id="countBadge">0 筆</span>
       </div>
-      <button class="btn btn-primary" id="btnAdd">＋ 新增房產</button>
+      <div class="list-header-actions">
+        <input type="file" id="importFileInput" accept="application/json,.json" class="hidden" />
+        <button type="button" class="btn btn-secondary" id="btnImport">匯入</button>
+        <button type="button" class="btn btn-secondary" id="btnExport">匯出</button>
+        <button type="button" class="btn btn-primary" id="btnAdd">＋ 新增房產</button>
+      </div>
     </div>
 
     <div class="property-list" id="propertyList">
@@ -1447,7 +1459,7 @@
   <script>
     // ========== App Version ==========
     // 發版時請更新 APP_VERSION
-    const APP_VERSION = '1.6.0';
+    const APP_VERSION = '1.7.0';
 
     function renderFooterVersion() {
       const yearEl = document.getElementById('footerYear');
@@ -2437,8 +2449,114 @@
     applyTheme(getTheme());
     $('#themeToggle').addEventListener('click', toggleTheme);
 
+    // ========== Export ==========
+    function downloadTextFile(filename, content, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportDateStamp() {
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+    }
+
+    function exportProperties() {
+      const data = loadData();
+      if (!data.length) {
+        alert('目前沒有可匯出的房產資料');
+        return;
+      }
+
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        version: APP_VERSION,
+        count: data.length,
+        items: data
+      };
+
+      downloadTextFile(
+        `房產清單_${exportDateStamp()}.json`,
+        JSON.stringify(payload, null, 2),
+        'application/json;charset=utf-8'
+      );
+    }
+
+    function normalizeImportedItems(parsed) {
+      let items = null;
+      if (Array.isArray(parsed)) {
+        items = parsed;
+      } else if (parsed && typeof parsed === 'object') {
+        if (Array.isArray(parsed.items)) items = parsed.items;
+        else if (Array.isArray(parsed.data)) items = parsed.data;
+      }
+      if (!items) return null;
+
+      // 只保留物件型資料，並確保有 id
+      return items
+        .filter(item => item && typeof item === 'object')
+        .map((item, idx) => ({
+          ...item,
+          id: item.id || (`import-${Date.now().toString(36)}-${idx}`)
+        }));
+    }
+
+    function importPropertiesFromFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(String(reader.result || ''));
+          const items = normalizeImportedItems(parsed);
+          if (!items || items.length === 0) {
+            alert('匯入失敗：檔案中沒有有效的房產資料');
+            return;
+          }
+
+          const currentCount = loadData().length;
+          const msg = currentCount > 0
+            ? `將匯入 ${items.length} 筆資料，並覆蓋目前的 ${currentCount} 筆資料。是否繼續？`
+            : `將匯入 ${items.length} 筆資料。是否繼續？`;
+          if (!confirm(msg)) return;
+
+          saveData(items);
+          expandedId = null;
+          renderList();
+          alert(`匯入完成：共 ${items.length} 筆`);
+        } catch (err) {
+          console.error(err);
+          alert('匯入失敗：JSON 格式不正確');
+        } finally {
+          // 允許重複選擇同一檔案
+          $('#importFileInput').value = '';
+        }
+      };
+      reader.onerror = () => {
+        alert('匯入失敗：無法讀取檔案');
+        $('#importFileInput').value = '';
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    function openImportPicker() {
+      $('#importFileInput').click();
+    }
+
     // ========== Event Bindings ==========
     $('#btnAdd').addEventListener('click', openModal);
+    $('#btnExport').addEventListener('click', exportProperties);
+    $('#btnImport').addEventListener('click', openImportPicker);
+    $('#importFileInput').addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) importPropertiesFromFile(file);
+    });
     $('#btnCloseModal').addEventListener('click', closeModal);
     $('#btnCancel').addEventListener('click', closeModal);
 
